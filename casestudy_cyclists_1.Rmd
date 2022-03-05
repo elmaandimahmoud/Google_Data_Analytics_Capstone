@@ -14,9 +14,6 @@ For the capstone project of the Google Data Analytics certificate, I have chosen
 To answer key business questions, I will follow the six steps of the data analysis process : Ask, Prepare, Process, Analyze, Share and Act.
 
 
-
-
-
 ### The scenario
 
 The director of marketing of Cyclistic, Lily Moreno, believes that the company’s future growth depends on maximizing the number of annual memberships. Hence, the marketing analyst team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights, the analytics team could be able to design a new marketing strategy to convert casual riders into annual members. 
@@ -30,9 +27,6 @@ Three questions will guide the future marketing campaign:
 3.How can Cyclistic use digital media to influence casual riders to become members?
 
 I have been assigned by Moreno the first question. 
-
-
-
 
 
 ### The Ask phase
@@ -82,24 +76,14 @@ Original files are backed up in a separate folder.
 
 Data Limitations: As riders’ personal identifiable information is hidden, thus will not be able to connect pass purchases to credit cards numbers to determine if casual riders live in the Cyclistic service area or if they have purchased multiple single passes.
 
-
-
-
-
 ### The Process Phase
 
 I used R for data verification and cleaning: Reasons:
 The 12 data sets combined will contain more than 5 million rows of data. Excel worksheet limitation is 1,048,576 rows. Moreover, some csv files could not uploaded to BigQuery for file size problems. Thus, R is used to perform all tasks from organizing, cleaning analyzing and visualizing data.
 
 
-
-
-
 ### The Analyze Phase
-
-
 #### Setting up the environment
-
 
 Here, I use several libraries that help reading, cleaning, organizing and analyzing the data.
 
@@ -119,11 +103,7 @@ library(DescTools)
 library(metR)
 ```
 
-
-
 #### Importing data 
-
-
 Cyclist data from 01/2021 until 12/2021 is imported and read as csv. files. 
 
 ```{r csv data collection, echo=TRUE, eval=FALSE}
@@ -141,9 +121,7 @@ data_11 <- read_csv("case study/raw data/2021_11.csv")
 data_12 <- read_csv("case study/raw data/2021_12.csv")
 ```
 
-
 Compare column names each of the files. While the names don't have to be in the same order, they DO need to match perfectly before they are  joined  into one file.
-
 
 ```{r colname inspection, echo=TRUE, eval=TRUE}
 colnames(data_01)
@@ -159,24 +137,16 @@ colnames(data_11)
 colnames(data_12)
 ```
 
-
-
 Afterwards, the 12 data sets are combined into one big data frame of 5595028 observations.
-
 
 ```{r stacking the datasets , echo=TRUE, eval=TRUE}
 all_trips <- bind_rows(data_01, data_02, data_03, data_04, data_05, 
                       data_06, data_07, data_08, data_09, data_10, data_11, data_12)
 ```
 
-
-
-
 ####  Clean up and organize data to prepare for analysis
 
-
 Inspect the new table that has been created.
-
 
 ```{r all_trips inspection, echo=TRUE, eval=TRUE}
 colnames(all_trips)  #List of column names
@@ -185,11 +155,8 @@ head(all_trips)  #See the first 6 rows of data frame
 str(all_trips)  #See list of columns and data types (numeric, character, etc)
 ```
 
-
-
 Then,  columns that list the date, month, day, day_of_week and year of each ride are added. days of the week are assigned the numbers 1:Monday, 2:Tuesday, etc.
 This will allow the aggregation of the data by each day, month or day_of_week.
-
 
 ```{r separting ride date and extracting date data, echo=TRUE, eval=TRUE}
 all_trips$date <- as.Date(all_trips$started_at) #The default format is yyyy-mm-dd
@@ -200,9 +167,7 @@ all_trips$day_of_week <- format(as.Date(all_trips$date), "%u") #"%A" would deliv
 ```
 
 
-
 Add a "ride_length" calculation to all_trips in seconds and in minutes (2 new columns).
-
 
 ```{r calulate the ride_length in secs, echo=TRUE, eval=TRUE}
 all_trips$ride_length <- difftime(all_trips$ended_at,all_trips$started_at)
@@ -211,18 +176,14 @@ all_trips$ride_length_m <- (difftime(all_trips$ended_at,all_trips$started_at))/6
 ```
 
 
-
 Inspect the structure of the newly added columns.
-
 
 ```{r data inspection, echo=TRUE, eval=TRUE}
 str(all_trips)
 ```
 
 
-
 Convert c(ride_length, ride_length_m, day and month) to numeric so that calculation can be executed.
-
 
 ```{r converting variables to numeric, echo=TRUE, eval=TRUE}
 all_trips$ride_length <- as.numeric(as.character(all_trips$ride_length))
@@ -236,22 +197,16 @@ is.numeric(all_trips$day)
 ```
 
 
-
 After converting and inspecting data, it was noticed that col:ride_length has some negative values, probably because start_time and end_time were swapped for these rides, or the system simply registered and recorded the rides incorrectly. So, negative-seconds rides must be excluded.
-
 
 ```{r droppig rows, echo=TRUE, eval=TRUE}
 all_trips_v1 <- all_trips[!( all_trips$ride_length < 0),]
 ```
 
 
-
-
 #### First analysis step: descriptive analysis on ride length
 
-
 First of all, a descriptive analysis on ride length [min] is performed.
-
 
 ```{r data statistical summary, echo=TRUE, eval=TRUE, error=TRUE}
 all_trips_v1 %>% 
@@ -261,9 +216,7 @@ all_trips_v1 %>%
 The overall average ride length is 21.9 minutes. 
 
 
-
 Second, the mode of weekday is calculated, namely which weekday occurs the most or on which weekday most bike are rented. 
-
 
 ```{r plot1: mode of the week_day, echo=TRUE, eval=TRUE, error=TRUE}
   all_trips_v1 %>% 
@@ -272,13 +225,10 @@ Second, the mode of weekday is calculated, namely which weekday occurs the most 
   ggplot(mapping = aes(x = day_of_week, y = number_of_rides)) + geom_col()
 ```
 
-
 The plot shows that most rides were started on Saturday(991047 rides), Saturday(857285 rides) followed by Friday(810508 rides). So most bikes are rented on the weekend. 
 
 
-
 Next, a plot of the ride_length or average_duration in minutes for every day of the week for members and casual riders is shown. 
-
 
 ```{r plot2: ride_length per day per rider type, echo=TRUE, eval=TRUE, error=TRUE}
 all_trips_v1 %>% 
@@ -290,14 +240,10 @@ all_trips_v1 %>%
   geom_col(position = "dodge")
 ```
 
-
 The plot demonstrates that casual riders rent bikes for longer durations, especially on Sunday, Saturday,  Friday (weekend) and on Monday. Members show a steady riding/using behavior, plus they also tend to ride a little longer on the weekend.  
 
 
-
-
 Here, number of rides per day for every rider type is plotted. 
-
 
 ```{r plot3: number_of_rides per day per rider type, echo=TRUE, eval=TRUE, error=TRUE}
 all_trips_v1 %>% 
@@ -309,10 +255,7 @@ all_trips_v1 %>%
   geom_col(position = "dodge")
 ```
 
-
 Surprisingly, and in contrast to the former plot, members begin more rides and thus have higher number of rides on every day of the week except for Saturday and Sunday. 
-
-
 
 
 #### Second analysis step: average ride length depending on rider type and number of each rider type
@@ -326,13 +269,10 @@ all_trips_v1 %>%
   geom_col()+ scale_y_continuous(breaks = seq(0, 40, by = 5))
 ```
 
-
 So, the result shows that casual riders tend to rent bikes for longer mean durations than members (32 min to 13.6 min), in accordance with plot 2. Members probably use bikes to commute, whereas casual riders maybe, among other things, exercising, visiting the city or attending special events.
 
 
-
 Here, the overall rider count based on rider type is plotted
-
 
 ```{r plot5: overall rider count by rider type, echo=TRUE, eval=TRUE, error=TRUE}
 all_trips_v1 %>%
@@ -342,14 +282,10 @@ all_trips_v1 %>%
   geom_col()
 ```
 
-
 The plot indicates that more than half of all riders are member riders (3/(3+2.5)=0,55)
 
 
-
-
 #### Third analysis step: Exploring  effect of  seasonality 
-
 
 Here, the Function "season" of the library "metR" was used to assign season to months:
 
@@ -366,9 +302,7 @@ SON:Fall
 all_trips_v1$season <- season(all_trips_v1$month)
 ```
 
-
 First, let us consider number of rides and ride length by weekday on each season
-
 
 ```{r plot6: number of rides by week_day and rider type and season, echo=TRUE, eval=TRUE, error=TRUE}
 all_trips_v1%>%
@@ -378,7 +312,6 @@ all_trips_v1%>%
 ggplot() + geom_col(mapping = aes(x = day_of_week, y = number_of_rides, fill = member_casual), position = "dodge") + facet_wrap(~season) + scale_y_continuous(breaks = seq(0, 400000, by = 50000))
 ```
 
-
 ```{r plot7: ride_lenght by week_day and rider type and season, echo=TRUE, eval=TRUE, error=TRUE}
 all_trips_v1%>%
   group_by(season, day_of_week, member_casual) %>%   
@@ -387,15 +320,11 @@ all_trips_v1%>%
 ggplot() + geom_col(mapping = aes(x = day_of_week, y = avg_ride_length, fill = member_casual), position = "dodge") + facet_wrap(~season) + scale_y_continuous(breaks = seq(0, 50, by = 10))
 ```
 
-
-
 Plot 6 tells us that number of rides of members is always higher than that of casual riders on every  work day in every season. Weekends are still the time where casual riders bike more than members. The only exception of this trend is in the winter months (Dec, Jan, Feb).
 Plot 7 demonstrates that the member group has all year long the average ride length of about 13.6 minutes. Casual riders use bikes  about half an hour long on all days in spring and summer. In winter and fall, the average ride lengths becomes less than 30 minutes. 
 
 
-
 Lastly, let us generate a line plot for continuous change of number of rides along the whole year for the two rider types.
-
 
 ```{r plot8: number of rides along the whole year}
 all_trips_v1%>%
@@ -405,15 +334,11 @@ all_trips_v1%>%
 ggplot() + geom_line(mapping = aes(x = month, y = number_of_rides, color = member_casual)) + scale_x_continuous(breaks = seq(1, 12, by = 1))
 ```
 
-
 The plot indicates, for casual riders/members, ridership peaked around July/August (Summer months being the turning point) and hit the lowest at February before rebounding up swiftly and continuously. 
 
 
 
-
-
 ### The Share phase 
-
 
 #### Conclusions/Summary of insights 
 
@@ -428,9 +353,7 @@ Members and casual riders differ in how long they use the bikes, how often they 
 * More than 50% of the riders are annual members (plot5), suggesting that the company have already achieved a certain level of loyalty among its bike users. This indicates a positive message, namely that the company is going to be able to convince many casual riders to convert to members, and to keep the new members satisfied. 
 
 
-
 #### Recommendations
-
 
 Give discounts for longer rides when you have a membership
 Longer rides can get some type of rewards program when they become members
